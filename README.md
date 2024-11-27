@@ -1,5 +1,5 @@
-# Advent of Code 2023
+# Advent of Code 2024
 
- - https://adventofcode.com/2023/
- - https://github.com/aceiii/advent-of-code-2023
+ - https://adventofcode.com/2024/
+ - https://github.com/aceiii/advent-of-code-2024
 
