@@ -2,6 +2,7 @@
 
 import sys
 import string
+import re
 
 
 def is_digit(c):
@@ -124,6 +125,24 @@ def part2(lines):
         elif op == "dont":
             enabled = False
     return answer
+
+
+
+def test(lines):
+    ops = []
+    for line in lines:
+        ops.extend(re.findall(r"(mul)\((\d+),(\d+)\)|(do)\(\)|(don\'t)\(\)", line))
+
+    answer = 0
+    enabled = True
+    for mul, a, b, do, dont in ops:
+        if mul and enabled:
+            answer += int(a, 10) * int(b, 10)
+        elif do:
+            enabled = True
+        elif dont:
+            enabled = False
+    print(answer)
 
 
 def main():
