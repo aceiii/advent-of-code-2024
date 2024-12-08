@@ -60,7 +60,6 @@ def part1(lines):
 
         for idx, f1 in enumerate(freqs[:-1]):
             for f2 in freqs[idx + 1:]:
-                print(c, f1, f2)
                 x1, y1 = f1
                 x2, y2 = f2
                 dx, dy = x2 - x1, y2 - y1
@@ -75,12 +74,47 @@ def part1(lines):
                     antinodes.add(a2)
 
 
-    print_map(dims, freq_map, antinodes)
     return len(antinodes)
 
 
 def part2(lines):
-    pass
+    freq_map, dims = parse_map(lines)
+    antinodes = set()
+
+    for c in freq_map:
+        freq_set = freq_map[c]
+        freqs = list(freq_set)
+
+        for idx, f1 in enumerate(freqs[:-1]):
+            for f2 in freqs[idx + 1:]:
+                x1, y1 = f1
+                x2, y2 = f2
+                dx, dy = x2 - x1, y2 - y1
+
+                antinodes.add(f1)
+                antinodes.add(f2)
+
+
+                while True:
+                    a1 = x1 - dx, y1 - dy
+                    x1, y1 = a1
+
+                    if within_bounds(dims, a1) and a1 not in freqs:
+                        antinodes.add(a1)
+                    else:
+                        break
+
+                while True:
+                    a2 = x2 + dx, y2 + dy
+                    x2, y2 = a2
+
+                    if within_bounds(dims, a2) and a2 not in freqs:
+                        antinodes.add(a2)
+                    else:
+                        break
+
+    print_map(dims, freq_map, antinodes)
+    return len(antinodes)
 
 
 def main():
