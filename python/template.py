@@ -12,7 +12,7 @@ def part2(lines):
 
 
 def main():
-    lines = sys.stdin.readlines()
+    lines = sys.stdin.read().strip().split("\n")
     print("Part1: {}".format(part1(lines)))
     print("Part2: {}".format(part2(lines)))
 
