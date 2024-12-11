@@ -25,7 +25,7 @@ def parse_map(lines):
 
         row = []
         for c in line.strip():
-            row.append(int(c, 10))
+            row.append(None if c == '.' else int(c, 10))
         height_map.append(row)
 
     height = len(height_map)
@@ -38,6 +38,9 @@ def parse_map(lines):
 
     for y, row in enumerate(height_map):
         for x, h in enumerate(row):
+            if h is None:
+                continue
+
             pos = (x, y)
 
             if h == 0:
@@ -63,6 +66,18 @@ def trail_score(trail_head, targets, height_map, graph, dims):
             stack.append(npos)
     return len(reached)
 
+def trail_rating(trail_head, targets, height_map, graph, dims):
+    target_set = set(targets)
+    stack = [trail_head]
+    rating = 0
+    while stack:
+        pos = stack.pop()
+        if pos in target_set:
+            rating += 1
+        for npos in graph[pos]:
+            stack.append(npos)
+    return rating
+
 
 def part1(lines):
     trail_heads, targets, height_map, graph, dims = parse_map(lines)
@@ -70,7 +85,8 @@ def part1(lines):
 
 
 def part2(lines):
-    pass
+    trail_heads, targets, height_map, graph, dims = parse_map(lines)
+    return sum(trail_rating(pos, targets, height_map, graph, dims) for pos in trail_heads)
 
 
 def main():
