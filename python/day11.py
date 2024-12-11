@@ -30,6 +30,20 @@ def blink(n):
     return [n * 2024]
 
 
+def blink_n(n, count, cache):
+    key = (n, count)
+    if key in cache:
+        return cache[key]
+
+    stones = blink(n)
+    if count == 1:
+        cache[key] = len(stones)
+        return cache[key]
+
+    cache[key] = sum(blink_n(a, count-1, cache) for a in stones)
+    return cache[key]
+
+
 def part1(lines):
     stones = [int(a, 10) for a in lines[0].strip().split(' ')]
     for _ in range(25):
@@ -38,7 +52,9 @@ def part1(lines):
     return len(stones)
 
 def part2(lines):
-    pass
+    stones = [int(a, 10) for a in lines[0].strip().split(' ')]
+    cache = {}
+    return sum(blink_n(a, 75, cache) for a in stones)
 
 
 def main():
