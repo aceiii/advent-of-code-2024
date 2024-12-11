@@ -36,11 +36,11 @@ def blink_n(n, count, cache):
         return cache[key]
 
     stones = blink(n)
-    if count == 1:
+    if count > 1:
+        cache[key] = sum(blink_n(a, count-1, cache) for a in blink(n))
+    else:
         cache[key] = len(stones)
-        return cache[key]
 
-    cache[key] = sum(blink_n(a, count-1, cache) for a in stones)
     return cache[key]
 
 
