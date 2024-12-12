@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+from operator import itemgetter
 
 
 def within_bounds(pos, dims):
@@ -17,10 +18,44 @@ def neighbours(pos):
     yield (x-1, y)
 
 
+def count_groups(sides):
+    sides = sides[:]
+    reduced_sides = []
+    while sides:
+        side = sides.pop(0)
+        if not reduced_sides:
+            reduced_sides.append(side)
+            continue
+
+        prev_side = reduced_sides[-1]
+        x, y, s = side
+        px, py, ps = prev_side
+        dx, dy = x - px, y - py
+
+        if ps != s or dx > 0 or dy > 1:
+            reduced_sides.append(side)
+            continue
+
+        reduced_sides.pop()
+        reduced_sides.append(side)
+    return len(reduced_sides)
+
+
 def find_region(pos, grid, dims, visited):
+    width, height = dims
     stack = [pos]
     perimeter = 0
     area = 0
+
+    vert_sides = []
+    hor_sides = []
+
+    side_map = {
+        (0, -1): ('-', (0, 0), 0),
+        (1,  0): ('|', (1, 0), 0),
+        (0,  1): ('-', (0, 1), 1),
+        (-1, 0): ('|', (0, 0), 1),
+    }
 
     while stack:
         pos = stack.pop()
@@ -32,12 +67,35 @@ def find_region(pos, grid, dims, visited):
         tile = grid[y][x]
         area += 1
         perimeter += 4
+
         next = [(nx, ny) for nx, ny in neighbours(pos) if within_bounds((nx, ny), dims) and grid[ny][nx] == tile]
         perimeter -= len(next)
         for npos in next:
             stack.append(npos)
 
-    return (area, perimeter)
+        sides = set(side_map.keys())
+        for npos in neighbours(pos):
+            if not within_bounds(npos, dims):
+                continue
+
+            nx, ny = npos
+            if within_bounds(npos, dims) and grid[ny][nx] != tile:
+                continue
+
+            dpos = nx - x, ny - y
+            sides.remove(dpos)
+
+        for side in sides:
+            sdir, (dx, dy), ss = side_map[side]
+            spos = (x + dx, y + dy, ss)
+
+            if sdir == '-':
+                hor_sides.append(spos)
+            else:
+                vert_sides.append(spos)
+
+    num_sides = count_groups(sorted(vert_sides)) + count_groups(sorted((y,x,s) for x,y,s in hor_sides))
+    return (area, perimeter, num_sides)
 
 
 def parse_map(lines):
@@ -63,13 +121,15 @@ def parse_map(lines):
 
     return regions
 
+
 def part1(lines):
     regions = parse_map(lines)
-    return sum(a * p for a, p in regions)
+    return sum(a * p for a, p, _ in regions)
 
 
 def part2(lines):
-    pass
+    regions = parse_map(lines)
+    return sum(a * s for a, p, s in regions)
 
 
 def main():
