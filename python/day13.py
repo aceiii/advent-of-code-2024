@@ -2,6 +2,7 @@
 
 import sys
 from operator import itemgetter
+from math import floor
 
 
 def parse_xy(line):
@@ -35,7 +36,6 @@ def solve_machine(machine):
     (ax, ay), (bx, by), (px, py) = machine
     max_a = min(px / ax, py / ay)
     max_b = min(px / bx, py / by)
-    
     a_count = int(max_a)
 
     solves = []
@@ -63,6 +63,71 @@ def solve_machine(machine):
     return solves[0]
 
 
+def solve_linear_equation1(machine):
+    (ax, ay), (bx, by), (px, py) = machine
+
+    # equation taken from reddit...
+    ec = by*px
+    bf = bx*py
+    ea = by*ax
+    bd = bx*ay
+    x = (ec - bf) / (ea - bd)
+
+    if x != floor(x):
+        return None
+
+    if bx == 0 or by == 0:
+        return None
+
+    y = (px - (x * ax)) / bx
+    y2 = (py - (x * ay)) / by
+
+    if y != y2:
+        return None
+
+    return x, y
+
+
+def solve_linear_equation(machine):
+    (ax, ay), (bx, by), (px, py) = machine
+
+    da = ax-ay
+    db = bx-by
+    dp = px - py
+    nx = dp / da
+    cy = -(db / da)
+
+    n = ax * nx
+    ny = (ax * cy) + bx
+    p = px - n
+    y = round(p / ny, 3)
+    x = round((px - (y * bx)) / ax, 3)
+
+    """
+    ans = solve_linear_equation1(machine)
+    if ans is not None:
+        xx, yy = ans
+        if xx != x and yy != y:
+            print('mismatch', xx, yy, x, y)
+    """
+
+    return x, y
+
+
+def solve_machine_linear(machine):
+    ans = solve_linear_equation(machine)
+    if ans is None:
+        return None
+
+    x, y = ans
+
+    if x != int(x) or y != int(y):
+        return None
+
+    c = int((x * 3) + y)
+    return (x, y, c)
+
+
 def part1(lines):
     machines = parse_machines(lines)
     solves = [solve_machine(machine) for machine in machines]
@@ -70,7 +135,10 @@ def part1(lines):
 
 
 def part2(lines):
-    pass
+    t = 10000000000000
+    machines = parse_machines(lines)
+    solves = [solve_machine_linear((a, b, (px + t, py + t))) for a, b, (px, py) in machines]
+    return sum(solve[2] for solve in solves if solve is not None)
 
 
 def main():
