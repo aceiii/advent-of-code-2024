@@ -64,9 +64,42 @@ def part1(lines):
     return a * b * c * d
 
 
-def part2(lines):
-    pass
+def print_bots(bots, dims):
+    w, h = dims
+    bot_set = set(pos for pos, _ in bots)
 
+    print('▛' + ('▀' * w) + '▜')
+
+    for y in range(h):
+        print('▌', end='')
+        print("".join("█" if (x,y) in bot_set else " " for x in range(w)), end='')
+        print('▐')
+
+    print('▙' + ('▄' * w) + '▟')
+
+
+def part2(lines):
+    dims = (101, 103)
+    bots = parse_robots(lines)
+
+    for i in range(10000):
+        bots = sim(bots, dims)
+        bot_set = set(pos for pos, _ in bots)
+
+        found = False
+        for y in range(dims[1]):
+            for x in range(dims[0] - 5):
+                if all((x+i, y) in bot_set for i in range(5)):
+                    found = True
+                    break
+
+            if found:
+                break
+
+        if found:
+            print(i+1)
+            print_bots(bots, dims)
+            print()
 
 def main():
     lines = sys.stdin.read().strip().split("\n")
