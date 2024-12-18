@@ -93,8 +93,48 @@ def part1(lines):
     return dist[end]
 
 
+def is_reachable(start, end, verts, edges):
+    stack = [start]
+    visited = set()
+
+    while stack:
+        pos = stack.pop()
+
+        if pos == end:
+            return True
+
+        if pos in visited:
+            continue
+
+        visited.add(pos)
+
+        for npos in neighbours(pos):
+            if (pos, npos) in edges:
+                stack.append(npos)
+
+    return False
+
+
 def part2(lines):
-    pass
+    w, h = 71, 71
+    # w, h = 7, 7
+
+    start = 0, 0
+    end = w-1, h-1
+    dims = w, h
+    falling = [tuple(int(a, 10) for a in line.split(',')) for line in lines]
+    verts, edges = build_graph(dims, set())
+    verts = set(verts)
+
+    for fallen in falling:
+        verts.remove(fallen)
+        for npos in neighbours(fallen):
+            pair = (npos, fallen)
+            if pair in edges:
+                edges.remove(pair)
+
+        if not is_reachable(start, end, verts, edges):
+            return ",".join(map(str, fallen))
 
 
 def main():
