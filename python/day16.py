@@ -73,7 +73,7 @@ def print_map_path(graph, path, dims):
         row = []
         for x in range(w):
             pos = x, y
-            row.append("X" if pos in path else "." if pos in verts else "#")
+            row.append("O" if pos in path else "." if pos in verts else "#")
 
         print("".join(row))
     print()
@@ -94,10 +94,10 @@ def part1(lines):
     while q:
         pos, dir, score, path = q.pop(0)
 
-        if pos in dist and score >= dist[pos][0]:
+        if pos in dist and score > dist[pos]:
             continue
 
-        dist[pos] = (score, dir)
+        dist[pos] = score
 
         new_nodes = []
         for npos in neighbours(pos):
@@ -119,7 +119,7 @@ def part1(lines):
 
             new_score = score + 1 + (0 if nd == dir else 1000)
 
-            if npos in dist and new_score >= dist[npos][0]:
+            if npos in dist and new_score >= dist[npos]:
                 continue
 
             new_nodes.append((npos, nd, new_score, new_path))
@@ -131,7 +131,66 @@ def part1(lines):
 
 
 def part2(lines):
-    pass
+    start, end, graph, dims = parse_map(lines)
+    verts, edges = graph
+
+    up = (0, -1)
+    right = (1, 0)
+    left = (-1, 0)
+    down = (0, 1)
+
+    dist = {}
+    paths = []
+    q = [(start, right, 0, {start: None})] 
+
+    while q:
+        pos, dir, score, path = q.pop()
+
+        if (pos,dir) in dist and score > dist[(pos,dir)]:
+            continue
+
+        if pos == end:
+            paths.append((score, path))
+
+        dist[(pos,dir)] = score
+
+        new_nodes = []
+        for npos in neighbours(pos):
+            if not within_bounds(npos, dims):
+                continue
+
+            if npos in path:
+                continue
+
+            if (pos, npos) not in edges:
+                continue
+
+            new_path = path.copy()
+            new_path[npos] = pos
+
+            x,y = pos
+            nx, ny = npos
+            nd = nx - x, ny - y
+
+            new_score = score + 1 + (0 if nd == dir else 1000)
+
+            new_nodes.append((npos, nd, new_score, new_path))
+
+        new_nodes.sort(key=itemgetter(2), reverse=True)
+        q.extend(new_nodes)
+
+
+    paths.sort(key=itemgetter(0))
+
+    tiles = set()
+    cs = float("inf")
+    for s, p in paths:
+        if s <= cs:
+            tiles.update(p)
+            cs = s
+
+    #print_map_path(graph, tiles, dims)
+    return len(tiles)
 
 
 def main():
