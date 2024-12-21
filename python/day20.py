@@ -92,7 +92,7 @@ def find_all_cheats(path, dist, grid, dims):
     return cheats
 
 
-def find_all_cheats2(path, dist, grid, dims):
+def find_all_cheats_max_n(path, dist, grid, dims, n):
     cheats = []
 
     for idx, pos in enumerate(path):
@@ -102,7 +102,7 @@ def find_all_cheats2(path, dist, grid, dims):
             dx, dy = nx - x, ny - y
             d = abs(dx) + abs(dy)
 
-            if d > 20:
+            if d > n:
                 continue
 
             cheat = pos, npos
@@ -117,7 +117,7 @@ def find_all_cheats2(path, dist, grid, dims):
 
 def part1(lines):
     path, dist, grid, dims, start, end = parse_track(lines)
-    cheats = find_all_cheats(path, dist, grid, dims)
+    cheats = find_all_cheats_max_n(path, dist, grid, dims, 2)
 
     count = 0
     for cheat, saved in cheats:
@@ -129,7 +129,7 @@ def part1(lines):
 
 def part2(lines):
     path, dist, grid, dims, start, end = parse_track(lines)
-    cheats = find_all_cheats2(path, dist, grid, dims)
+    cheats = find_all_cheats_max_n(path, dist, grid, dims, 20)
 
     count = 0
     for cheat, saved in cheats:
