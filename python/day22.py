@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
+from operator import itemgetter
+from collections import defaultdict
 
 
 def next_secret(n):
@@ -25,9 +27,40 @@ def part1(lines):
     return sum(secrets)
 
 
+def gen_prices(i, n):
+    prices = [(i, i % 10, None)]
+    s = i
+    while n:
+        ns = next_secret(s)
+        np = ns % 10
+        cp = np - prices[-1][1]
+        n -= 1
+        s = ns
+        prices.append((ns, np, cp))
+    return prices
+
 
 def part2(lines):
-    pass
+    t = 2000
+    inits = [int(line, 10) for line in lines]
+    prices = [gen_prices(i, t) for i in inits]
+
+
+    global_sequence = defaultdict(lambda: 0)
+
+    for price in prices:
+        sv = set()
+        for i in range(len(price) - 4):
+            cs = tuple(c for _,_,c in price[i:i+4])
+            p = price[i+3][1]
+
+            if cs not in sv:
+                sv.add(cs)
+                global_sequence[cs] += p
+
+    sequences = sorted(global_sequence.items(), key=itemgetter(1), reverse=True)
+    sequence, count = sequences[0]
+    return count
 
 
 def main():
