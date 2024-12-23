@@ -132,6 +132,197 @@ class Warehouse:
         return score
 
 
+class WideBlock:
+    def __init__(self, pos, moveable):
+        x, y = pos
+        self._pos = set([(x, y), (x+1, y)])
+        self.moveable = moveable
+
+    def _add_pos(self, pos):
+        self._pos.add(pos)
+
+    def _remove_pos(self, pos):
+        if pos in self._pos:
+            self._pos.remove(pos)
+
+    def pos(self):
+        return sorted(self._pos)[0]
+
+    def __repr__(self):
+        return f"WideBlock({self.pos()})"
+
+
+class WideWarehouse:
+    def __init__(self, lines):
+        self.height = len(lines)
+        self.width = len(lines[0]) * 2
+
+        self.grid = []
+        self.blocks = []
+        for y, line in enumerate(lines):
+            row = []
+            for x, tile in enumerate(line):
+                pos = x * 2, y
+
+                if tile == "@":
+                    self.robot = pos
+
+                block = None
+                if tile == "#" or tile == "O":
+                    block = WideBlock(pos, tile == "O")
+
+                row.append(block)
+                row.append(block)
+
+                if block is not None:
+                    self.blocks.append(block)
+            self.grid.append(row)
+
+    def __repr__(self):
+        return f"WideWarehouse({self.width}, {self.height})"
+
+    def print_map(self):
+        for y, row in enumerate(self.grid):
+
+            line = []
+            for x, tile in enumerate(row):
+                pos = x, y
+
+                if pos == self.robot:
+                    line.append("@")
+                elif tile is None:
+                    line.append(".")
+                elif tile.moveable == False:
+                    line.append("#")
+                else:
+                    tx,ty = tile.pos()
+                    dx = tx - x
+                    if dx == 0:
+                        line.append("[")
+                    else:
+                        line.append("]")
+
+            print("".join(line))
+        print()
+
+    def tile_at(self, pos):
+        x, y = pos
+        return self.grid[y][x]
+
+    def set_tile_at(self, pos, tile):
+        x, y = pos
+        self.grid[y][x] = tile
+
+    def move_hor(self, dx):
+        x, y = self.robot
+        mx = 0
+        while True:
+            x += dx
+            mx += 1
+            tile = self.tile_at((x, y))
+            if tile is None:
+                break
+            if not tile.moveable:
+                return
+
+        x, y = self.robot
+        cx = x + (mx * dx)
+
+        while mx > 1:
+            p1 = (cx, y)
+            p2 = (cx - dx, y)
+
+            t1 = self.tile_at(p1)
+            t2 = self.tile_at(p2)
+
+            self.set_tile_at(p1, t2)
+            self.set_tile_at(p2, t1)
+
+            if t1:
+                t1._remove_pos(p1)
+                t1._add_pos(p2)
+
+            if t2:
+                t2._remove_pos(p2)
+                t2._add_pos(p1)
+
+            cx += -dx
+            mx -= 1
+
+        if mx:
+            self.robot = (x + dx, y)
+
+    def move_vert(self, dy):
+        x, y = self.robot
+        stack = [(x, y + dy)]
+        visited = set()
+        to_move = []
+        while stack:
+            pos = stack.pop()
+            tile = self.tile_at(pos)
+
+            if tile is None:
+                continue
+
+            if tile in visited:
+                continue
+
+            if not tile.moveable:
+                return
+
+            visited.add(tile)
+            to_move.append(tile)
+
+            tx, ty = tile.pos()
+            stack.append((tx, ty + dy))
+            stack.append((tx + 1, ty + dy))
+
+        to_move.sort(key=lambda b: (b.pos()[1] * dy, b.pos()[0]))
+
+        while to_move:
+            tile = to_move.pop()
+            tx, ty = tile.pos()
+
+            p1 = (tx, ty)
+            p2 = (tx + 1, ty)
+            p3 = (tx, ty + dy)
+            p4 = (tx + 1, ty + dy)
+
+            tile._remove_pos(p1)
+            tile._remove_pos(p2)
+            tile._add_pos(p3)
+            tile._add_pos(p4)
+
+            self.set_tile_at(p1, None)
+            self.set_tile_at(p2, None)
+            self.set_tile_at(p3, tile)
+            self.set_tile_at(p4, tile)
+
+        self.robot = (x, y + dy)
+
+    def move(self, m):
+        moves = {
+            "^": (0, -1),
+            "<": (-1, 0),
+            ">": (1, 0),
+            "v": (0, 1),
+        }
+
+        dx, dy = moves[m]
+        if dx != 0:
+            self.move_hor(dx)
+        else:
+            self.move_vert(dy)
+
+    def gps_score(self):
+        score = 0
+        for block in self.blocks:
+            if block.moveable:
+                x,y = block.pos()
+                score += (y * 100) + x
+        return score
+
+
 def parse_warehouse(lines):
     lines = lines[:]
 
@@ -151,23 +342,38 @@ def parse_warehouse(lines):
         else:
             moves.extend(c for c in line)
 
-    warehouse = Warehouse(wh_lines)
-    return warehouse, moves
+    return wh_lines, moves
 
 
 def part1(lines):
-    wh, moves = parse_warehouse(lines)
+    wh_lines, moves = parse_warehouse(lines)
+    wh = Warehouse(wh_lines)
     #wh.print_map()
 
     for m in moves:
         wh.move(m)
-        # wh.print_map()
+        #wh.print_map()
 
     return wh.gps_score()
 
 
 def part2(lines):
-    pass
+    wh_lines, moves = parse_warehouse(lines)
+    wh = WideWarehouse(wh_lines)
+    #wh.print_map()
+
+    print(len(moves))
+    n = 0
+    for m in moves:
+        wh.move(m)
+        #wh.print_map()
+
+        n += 1
+        #if n == 3500:
+        #    break
+
+    wh.print_map()
+    return wh.gps_score()
 
 
 def main():
